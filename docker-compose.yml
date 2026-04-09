@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/urlshortener_dev?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: urluser
+      SPRING_DATASOURCE_PASSWORD: urlpass
+      APP_BASE_URL: http://localhost:8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - urlnet
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: urlshortener_dev
+      MYSQL_USER: urluser
+      MYSQL_PASSWORD: urlpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-urluser", "-purlpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - urlnet
+
+volumes:
+  mysql_data:
+
+networks:
+  urlnet:
+    driver: bridge
