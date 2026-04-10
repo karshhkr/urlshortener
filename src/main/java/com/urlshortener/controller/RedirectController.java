@@ -7,16 +7,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @RestController
 @RequiredArgsConstructor
 public class RedirectController {
 
     private final UrlShortenerService urlShortenerService;
 
+    private static final Set<String> RESERVED = Set.of(
+            "index.html", "favicon.ico", "actuator", "api", "static", "error"
+    );
+
     @GetMapping("/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
+
+        if (RESERVED.contains(shortCode.toLowerCase())) {
+            return ResponseEntity.notFound().build();
+        }
+
         String originalUrl = urlShortenerService.getOriginalUrl(shortCode);
-        // Async click count increment (fire and forget)
         urlShortenerService.incrementClickCount(shortCode);
 
         HttpHeaders headers = new HttpHeaders();

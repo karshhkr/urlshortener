@@ -25,10 +25,27 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Static files — index.html, CSS, JS
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/static/**",
+                                "/*.html",
+                                "/*.css",
+                                "/*.js",
+                                "/*.ico",
+                                "/favicon.ico",
+                                "/error",
+                                "/webjars/**",
+                                "/**"
+                                ).permitAll()
+                        // API endpoints
                         .requestMatchers(HttpMethod.POST, "/api/shorten").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/{shortCode}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/{shortCode}").permitAll()
+                        // Actuator
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Baaki sab authenticated
                         .anyRequest().authenticated()
                 );
         return http.build();
