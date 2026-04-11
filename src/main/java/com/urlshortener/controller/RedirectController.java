@@ -16,10 +16,11 @@ public class RedirectController {
     private final UrlShortenerService urlShortenerService;
 
     private static final Set<String> RESERVED = Set.of(
-            "index.html", "favicon.ico", "actuator", "api", "static", "error"
+            "index.html", "favicon.ico", "actuator",
+            "api", "static", "error", "webjars"
     );
 
-    @GetMapping("/{shortCode}")
+    @GetMapping("/{shortCode:[a-zA-Z0-9]{4,10}}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
 
         if (RESERVED.contains(shortCode.toLowerCase())) {
