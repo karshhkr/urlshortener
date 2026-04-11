@@ -82,3 +82,42 @@ mvn clean spring-boot:run
 ```
 
 **5. Open browser**
+## Sample API Usage
+
+### Register
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john","email":"john@example.com","password":"pass123"}'
+```
+
+### Login
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john","password":"pass123"}'
+```
+
+### Shorten URL
+```bash
+curl -X POST http://localhost:8080/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.google.com"}'
+```
+
+### Project Structure
+
+src/main/java/com/urlshortener/
+
+├── config/          # Security, JWT, Cache config
+├── controller/      # REST controllers
+├── dto/             # Request/Response DTOs
+├── entity/          # JPA entities
+├── exception/       # Global exception handler
+├── repository/      # JPA repositories
+└── service/         # Business logic
+
+## Author
+**Utkarsh Kumar Dabgarwal**
+- GitHub: [username](https://github.com/karshhkr)
+- LinkedIn: [linkedin](www.linkedin.com/in/utkarshkumardabgarwal-9001571b1)
