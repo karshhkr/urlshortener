@@ -3,7 +3,7 @@
 A production-ready URL Shortener built with Spring Boot, MySQL, and JWT Authentication.
 
 ## Live Demo
-🔗 [Coming Soon - Railway Deployment]
+🔗 [https://urlshortener-production-62d6.up.railway.app/index.html - Railway Deployment]
 
 ## Tech Stack
 
