@@ -119,8 +119,8 @@ src/main/java/com/urlshortener/
 
 ## Author
 **Utkarsh Kumar Dabgarwal**
-- GitHub: [username](https://github.com/karshhkr)
-- LinkedIn: [linkedin](www.linkedin.com/in/utkarshkumardabgarwal-9001571b1)
+- GitHub: [👨‍💻](https://github.com/karshhkr)
+- LinkedIn: [🙋](www.linkedin.com/in/utkarshkumardabgarwal-9001571b1)
 
  
  ## Live Demo
