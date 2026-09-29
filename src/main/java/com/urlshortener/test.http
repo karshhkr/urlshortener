@@ -1,0 +1,15 @@
+#### 1. DELETE bina token ke -> 401 aana chahiye
+#DELETE http://localhost:8080/api/urls/abc123
+#
+#### 2. Shorten -> 201 aana chahiye
+#POST http://localhost:8080/api/shorten
+#Content-Type: application/json
+#
+#{"url":"https://www.google.com"}
+#
+#### 3. Redirect -> 302 aana chahiye
+## @no-redirect
+#GET http://localhost:8080/PASTE_SHORTCODE_HERE
+#
+#### 4. Stats
+#GET http://localhost:8080/api/stats/PASTE_SHORTCODE_HERE

@@ -4,6 +4,7 @@ import com.urlshortener.dto.AuthResponse;
 import com.urlshortener.dto.LoginRequest;
 import com.urlshortener.dto.RegisterRequest;
 import com.urlshortener.entity.User;
+import com.urlshortener.exception.ConflictException;
 import com.urlshortener.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,10 +23,10 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
+            throw new ConflictException("Username already taken");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         User user = User.builder()
@@ -47,15 +48,12 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        // Throws BadCredentialsException on a wrong password; GlobalExceptionHandler turns it into 401.
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalStateException("Authenticated user missing from DB"));
 
         String token = jwtService.generateToken(user);
 

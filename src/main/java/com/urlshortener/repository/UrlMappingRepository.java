@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,7 +16,11 @@ public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
 
     Optional<UrlMapping> findByShortCodeAndIsActiveTrue(String shortCode);
 
+    Optional<UrlMapping> findByShortCode(String shortCode);
+
     boolean existsByShortCode(String shortCode);
+
+    List<UrlMapping> findByCreatedByOrderByCreatedAtDesc(String createdBy);
 
     @Modifying
     @Query("UPDATE UrlMapping u SET u.clickCount = u.clickCount + 1 WHERE u.shortCode = :shortCode")
@@ -24,6 +29,4 @@ public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
     @Modifying
     @Query("UPDATE UrlMapping u SET u.isActive = false WHERE u.expiresAt < :now AND u.isActive = true")
     int deactivateExpiredUrls(@Param("now") LocalDateTime now);
-
-    Optional<UrlMapping> findByShortCode(String shortCode);
 }

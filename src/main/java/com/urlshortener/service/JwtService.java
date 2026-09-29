@@ -3,11 +3,13 @@ package com.urlshortener.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,14 @@ public class JwtService {
 
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
+
+    @PostConstruct
+    void validateSecret() {
+        if (secretKey == null || secretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "app.jwt.secret must be at least 32 characters. Set the JWT_SECRET environment variable.");
+        }
+    }
 
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
@@ -54,8 +64,7 @@ public class JwtService {
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claimsResolver.apply(extractAllClaims(token));
     }
 
     private Claims extractAllClaims(String token) {
@@ -67,6 +76,6 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 }

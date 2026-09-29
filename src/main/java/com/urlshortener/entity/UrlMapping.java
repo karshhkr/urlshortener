@@ -8,11 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "url_mappings", indexes = {
-        @Index(name = "idx_short_code", columnList = "short_code", unique = true),
-        @Index(name = "idx_expires_at", columnList = "expires_at"),
-        @Index(name = "idx_created_at", columnList = "created_at")
-})
+@Table(name = "url_mappings")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,8 +33,13 @@ public class UrlMapping {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    /** Username of the owner. NULL means it was created anonymously. */
     @Column(name = "created_by", length = 100)
     private String createdBy;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -48,11 +49,7 @@ public class UrlMapping {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_active", nullable = false)
-    @Builder.Default
-    private Boolean isActive = true;
-
     public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt != null && expiresAt.isBefore(LocalDateTime.now());
     }
 }
