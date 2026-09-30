@@ -9,6 +9,7 @@ import com.urlshortener.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,13 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        // Login accepts username OR email, so the two namespaces must not overlap.
+        if (userRepository.existsByUsername(request.getUsername())
+                || userRepository.existsByEmail(request.getUsername())) {
             throw new ConflictException("Username already taken");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())
+                || userRepository.existsByUsername(request.getEmail())) {
             throw new ConflictException("Email already registered");
         }
 
@@ -48,13 +52,12 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // Throws BadCredentialsException on a wrong password; GlobalExceptionHandler turns it into 401.
-        authenticationManager.authenticate(
+        // "username" field can hold a username or an email (see userDetailsService in SecurityConfig).
+        // Wrong credentials throw BadCredentialsException, which GlobalExceptionHandler maps to 401.
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user missing from DB"));
-
+        User user = (User) authentication.getPrincipal();
         String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()

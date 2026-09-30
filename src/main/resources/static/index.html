@@ -3,307 +3,71 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>URL Shortener</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh;
-               display: flex; flex-direction: column; align-items: center; padding: 50px 20px; }
-        h1 { font-size: 2rem; color: #fff; margin-bottom: 8px; }
-        .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 30px; }
-        .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 28px; width: 100%; max-width: 700px; margin-bottom: 20px; }
-        .card h2 { font-size: 0.95rem; color: #aaa; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
-        input { width: 100%; padding: 12px 16px; background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 12px; }
-        input:focus { border-color: #555; }
-        .row { display: flex; gap: 10px; }
-        .row input { flex: 1; margin-bottom: 0; }
-        button { padding: 12px 22px; background: #fff; color: #000; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        button:hover { background: #ddd; }
-        button.secondary { background: #2a2a2a; color: #e0e0e0; margin-left: 8px; }
-        button.secondary:hover { background: #333; }
-        button.small { padding: 6px 12px; font-size: 0.78rem; }
-        button.danger { background: #3a1c1c; color: #f87171; }
-        .message { padding: 10px 14px; border-radius: 8px; font-size: 0.875rem; margin-top: 12px; display: none; }
-        .message.error { background: #2a1a1a; border: 1px solid #5c2d2d; color: #f87171; display: block; }
-        .message.success { background: #1a2a1a; border: 1px solid #2d5c2d; color: #4ade80; display: block; }
-        .result-box { display: none; margin-top: 20px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; }
-        .result-box.show { display: block; }
-        .result-label { font-size: 0.75rem; color: #666; margin-bottom: 6px; text-transform: uppercase; }
-        .result-url { font-size: 1rem; color: #4ade80; word-break: break-all; margin-bottom: 12px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
-        .stat-item { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; }
-        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; margin-bottom: 6px; }
-        .stat-value { font-size: 1.05rem; color: #fff; font-weight: 500; word-break: break-all; }
-        .stat-value.clicks { font-size: 1.8rem; color: #4ade80; }
-        .chart { margin-top: 16px; }
-        .bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: #888; margin-bottom: 6px; }
-        .bar-row .day { width: 82px; }
-        .bar-row .bar { height: 10px; background: #4ade80; border-radius: 4px; min-width: 2px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { text-align: left; color: #666; font-weight: 500; font-size: 0.72rem; text-transform: uppercase; padding: 6px 8px; }
-        td { padding: 8px; border-top: 1px solid #2a2a2a; vertical-align: middle; }
-        td.url { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #aaa; }
-        a { color: #4ade80; text-decoration: none; }
-        .active-yes { color: #4ade80; } .active-no { color: #f87171; }
-        .hidden { display: none; }
-        .footer { margin-top: 30px; color: #444; font-size: 0.8rem; }
-    </style>
+    <title>URL Shortener - Login</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <h1>URL Shortener</h1>
-<p class="subtitle">Shorten, track and manage your links</p>
+<p class="subtitle">Login or create an account to continue</p>
 
-<!-- AUTH -->
-<div class="card">
-    <h2>Account</h2>
-    <div id="authForm">
-        <input id="username" placeholder="Username" autocomplete="username" />
-        <input id="email" placeholder="Email (only for register)" autocomplete="email" />
-        <input id="password" type="password" placeholder="Password (min 6 chars)" autocomplete="current-password" />
-        <button id="loginBtn">Login</button>
-        <button id="registerBtn" class="secondary">Register</button>
+<div class="card narrow">
+    <div class="tabs">
+        <button id="tabLogin" class="active">Login</button>
+        <button id="tabRegister">Register</button>
     </div>
-    <div id="authInfo" class="hidden">
-        Logged in as <strong id="whoami"></strong>
-        <button id="logoutBtn" class="secondary small">Logout</button>
-    </div>
+
+    <input id="username" placeholder="Username or email" autocomplete="username" />
+    <input id="email" class="hidden" type="email" placeholder="Email" autocomplete="email" />
+    <input id="password" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password" />
+    <button id="submitBtn" class="full">Login</button>
     <div id="authMessage" class="message"></div>
-    <p style="color:#666; font-size:0.8rem; margin-top:10px;">Login is optional. Without it you can still shorten links, but you cannot manage them later.</p>
-</div>
-
-<!-- SHORTEN -->
-<div class="card">
-    <h2>Shorten a URL</h2>
-    <input id="longUrl" placeholder="https://www.example.com/very/long/url" />
-    <div class="row">
-        <input id="customAlias" placeholder="Custom alias (4-10 letters/digits, optional)" />
-        <input id="expiryDays" placeholder="Expiry days" style="max-width:130px;" />
-    </div>
-    <div style="margin-top:12px;"><button id="shortenBtn">Shorten</button></div>
-    <div id="shortenMessage" class="message"></div>
-    <div id="resultBox" class="result-box">
-        <div class="result-label">Your Short URL</div>
-        <div id="shortUrlText" class="result-url"></div>
-        <button id="copyBtn" class="small">Copy URL</button>
-    </div>
-</div>
-
-<!-- MY URLS -->
-<div id="myUrlsCard" class="card hidden">
-    <h2>My URLs</h2>
-    <table>
-        <thead><tr><th>Code</th><th>Original</th><th>Clicks</th><th>Status</th><th></th></tr></thead>
-        <tbody id="myUrlsBody"></tbody>
-    </table>
-    <div id="myUrlsMessage" class="message"></div>
-</div>
-
-<!-- STATS -->
-<div class="card" id="statsCard">
-    <h2>Check Stats</h2>
-    <div class="row">
-        <input id="statsCode" placeholder="Enter short code e.g. aB3xYz" />
-        <button id="statsBtn">Get Stats</button>
-    </div>
-    <div id="statsMessage" class="message"></div>
-    <div id="statsBox" class="hidden" style="margin-top:20px;">
-        <div class="stats-grid">
-            <div class="stat-item"><div class="stat-label">Short Code</div><div class="stat-value" id="statCode">-</div></div>
-            <div class="stat-item"><div class="stat-label">Total Clicks</div><div class="stat-value clicks" id="statClicks">0</div></div>
-            <div class="stat-item" style="grid-column: span 2;"><div class="stat-label">Original URL</div><div class="stat-value" id="statUrl" style="font-size:0.85rem;color:#aaa;">-</div></div>
-            <div class="stat-item"><div class="stat-label">Status</div><div class="stat-value" id="statActive">-</div></div>
-            <div class="stat-item"><div class="stat-label">Expires At</div><div class="stat-value" id="statExpiry" style="font-size:0.85rem;">-</div></div>
-        </div>
-        <div class="chart"><div class="stat-label">Clicks, last 7 days (UTC)</div><div id="statChart"></div></div>
-    </div>
 </div>
 
 <p class="footer">Built with Spring Boot + MySQL</p>
 
+<script src="common.js"></script>
 <script>
-    // Same origin: works on localhost AND on Render without changing anything.
-    // (The old version had the Render URL hardcoded, so localhost was actually talking to Render.)
-    const $ = id => document.getElementById(id);
-    let token = localStorage.getItem('token');
-    let currentUser = localStorage.getItem('username');
+    // Already logged in? Go straight to the app.
+    if (getToken()) location.replace('app.html');
 
-    function show(el, type, text) { el.className = 'message ' + type; el.textContent = text; }
-    function clearMsg(el) { el.className = 'message'; el.textContent = ''; }
+    let mode = 'login';
 
-    async function api(path, options = {}) {
-      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-      let res;
-      try { res = await fetch(path, { ...options, headers }); }
-      catch (e) { return { ok: false, status: 0, data: { message: 'Cannot connect to server.' } }; }
-      let data = null;
-      const text = await res.text();
-      if (text) { try { data = JSON.parse(text); } catch (e) { /* not JSON */ } }
-      if (res.status === 401 && token) { logout(); }   // token expired or invalid
-      return { ok: res.ok, status: res.status, data };
+    function setMode(m) {
+      mode = m;
+      $('tabLogin').classList.toggle('active', m === 'login');
+      $('tabRegister').classList.toggle('active', m === 'register');
+      $('email').classList.toggle('hidden', m === 'login');
+      $('username').placeholder = m === 'login' ? 'Username or email' : 'Choose a username';
+      $('submitBtn').textContent = m === 'login' ? 'Login' : 'Create account';
+      clearMsg($('authMessage'));
     }
 
-    function errText(r) {
-      if (r.status === 401) return (r.data && r.data.message) || 'Please login again.';
-      return (r.data && r.data.message) || ('Request failed (' + r.status + ')');
-    }
-
-    // ---------- auth ----------
-    function refreshAuthUi() {
-      const loggedIn = !!token;
-      $('authForm').classList.toggle('hidden', loggedIn);
-      $('authInfo').classList.toggle('hidden', !loggedIn);
-      $('myUrlsCard').classList.toggle('hidden', !loggedIn);
-      $('whoami').textContent = currentUser || '';
-    }
-
-    async function auth(kind) {
+    async function submit() {
       const msg = $('authMessage'); clearMsg(msg);
-      const body = { username: $('username').value.trim(), password: $('password').value };
-      if (kind === 'register') body.email = $('email').value.trim();
-      const r = await api('/api/auth/' + kind, { method: 'POST', body: JSON.stringify(body) });
+      const username = $('username').value.trim();
+      const password = $('password').value;
+      const email = $('email').value.trim();
+
+      if (!username || !password) { show(msg, 'error', 'Please fill in all fields.'); return; }
+      if (mode === 'register' && !email) { show(msg, 'error', 'Please enter your email.'); return; }
+
+      const body = { username, password };
+      if (mode === 'register') body.email = email;
+
+      $('submitBtn').disabled = true;
+      const r = await api('/api/auth/' + mode, { method: 'POST', body: JSON.stringify(body) });
+      $('submitBtn').disabled = false;
+
       if (!r.ok) { show(msg, 'error', errText(r)); return; }
-      token = r.data.token; currentUser = r.data.username;
-      localStorage.setItem('token', token); localStorage.setItem('username', currentUser);
-      $('password').value = '';
-      refreshAuthUi(); loadMyUrls();
+      saveSession(r.data);
+      location.href = 'app.html';
     }
 
-    function logout() {
-      token = null; currentUser = null;
-      localStorage.removeItem('token'); localStorage.removeItem('username');
-      $('myUrlsBody').replaceChildren();
-      refreshAuthUi();
-    }
-
-    // ---------- shorten ----------
-    async function shortenUrl() {
-      const msg = $('shortenMessage'); clearMsg(msg);
-      $('resultBox').classList.remove('show');
-      const url = $('longUrl').value.trim();
-      const alias = $('customAlias').value.trim();
-      const expiry = $('expiryDays').value.trim();
-      if (!url) { show(msg, 'error', 'Please enter a URL.'); return; }
-
-      const body = { url };
-      if (alias) body.customAlias = alias;
-      if (expiry) body.expiryDays = parseInt(expiry, 10);
-
-      const r = await api('/api/shorten', { method: 'POST', body: JSON.stringify(body) });
-      if (!r.ok) { show(msg, 'error', errText(r)); return; }
-      $('shortUrlText').textContent = r.data.shortUrl;
-      $('resultBox').classList.add('show');
-      if (token) loadMyUrls();
-    }
-
-    function copyUrl() {
-      const url = $('shortUrlText').textContent;
-      navigator.clipboard.writeText(url).then(() => {
-        $('copyBtn').textContent = 'Copied!';
-        setTimeout(() => $('copyBtn').textContent = 'Copy URL', 2000);
-      });
-    }
-
-    // ---------- my urls ----------
-    function cell(text, className) {
-      const td = document.createElement('td');
-      td.textContent = text;
-      if (className) td.className = className;
-      return td;
-    }
-
-    async function loadMyUrls() {
-      if (!token) return;
-      const msg = $('myUrlsMessage'); clearMsg(msg);
-      const r = await api('/api/urls');
-      const body = $('myUrlsBody'); body.replaceChildren();
-      if (!r.ok) { show(msg, 'error', errText(r)); return; }
-      if (r.data.length === 0) {
-        const tr = document.createElement('tr');
-        const td = cell('No URLs yet. Shorten one above while logged in.');
-        td.colSpan = 5; tr.appendChild(td); body.appendChild(tr);
-        return;
-      }
-      r.data.forEach(u => {
-        const tr = document.createElement('tr');
-
-        const codeTd = document.createElement('td');
-        const link = document.createElement('a');
-        link.href = u.shortUrl; link.target = '_blank'; link.rel = 'noopener';
-        link.textContent = u.shortCode;
-        codeTd.appendChild(link);
-
-        const urlTd = cell(u.originalUrl, 'url'); urlTd.title = u.originalUrl;
-        const statusTd = cell(u.isActive ? 'Active' : 'Inactive', u.isActive ? 'active-yes' : 'active-no');
-
-        const actionTd = document.createElement('td');
-        const statsBtn = document.createElement('button');
-        statsBtn.className = 'small secondary'; statsBtn.textContent = 'Stats';
-        statsBtn.onclick = () => { $('statsCode').value = u.shortCode; getStats(); $('statsCard').scrollIntoView({ behavior: 'smooth' }); };
-        actionTd.appendChild(statsBtn);
-        if (u.isActive) {
-          const delBtn = document.createElement('button');
-          delBtn.className = 'small danger secondary'; delBtn.textContent = 'Delete';
-          delBtn.onclick = () => deleteUrl(u.shortCode);
-          actionTd.appendChild(delBtn);
-        }
-
-        tr.append(codeTd, urlTd, cell(String(u.clickCount)), statusTd, actionTd);
-        body.appendChild(tr);
-      });
-    }
-
-    async function deleteUrl(code) {
-      if (!confirm('Deactivate ' + code + '? The short link will stop working.')) return;
-      const r = await api('/api/urls/' + encodeURIComponent(code), { method: 'DELETE' });
-      if (!r.ok) { show($('myUrlsMessage'), 'error', errText(r)); return; }
-      loadMyUrls();
-    }
-
-    // ---------- stats ----------
-    async function getStats() {
-      const msg = $('statsMessage'); clearMsg(msg);
-      $('statsBox').classList.add('hidden');
-      const code = $('statsCode').value.trim();
-      if (!code) { show(msg, 'error', 'Please enter a short code.'); return; }
-
-      const r = await api('/api/stats/' + encodeURIComponent(code));
-      if (!r.ok) { show(msg, 'error', errText(r)); return; }
-      const d = r.data;
-      $('statCode').textContent = d.shortCode;
-      $('statClicks').textContent = d.clickCount;
-      $('statUrl').textContent = d.originalUrl;
-      const active = $('statActive');
-      active.textContent = d.isActive ? 'Active' : 'Inactive';
-      active.className = 'stat-value ' + (d.isActive ? 'active-yes' : 'active-no');
-      $('statExpiry').textContent = d.expiresAt ? new Date(d.expiresAt).toLocaleDateString() : 'Never';
-
-      const chart = $('statChart'); chart.replaceChildren();
-      const days = Object.entries(d.clicksByDay || {});
-      const max = Math.max(1, ...days.map(([, c]) => c));
-      days.forEach(([day, count]) => {
-        const row = document.createElement('div'); row.className = 'bar-row';
-        const label = document.createElement('span'); label.className = 'day'; label.textContent = day.slice(5);
-        const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = (count / max * 100) + 'px';
-        const num = document.createElement('span'); num.textContent = count;
-        row.append(label, bar, num); chart.appendChild(row);
-      });
-      $('statsBox').classList.remove('hidden');
-    }
-
-    // ---------- wiring ----------
-    $('loginBtn').onclick = () => auth('login');
-    $('registerBtn').onclick = () => auth('register');
-    $('logoutBtn').onclick = logout;
-    $('shortenBtn').onclick = shortenUrl;
-    $('copyBtn').onclick = copyUrl;
-    $('statsBtn').onclick = getStats;
-    $('longUrl').addEventListener('keydown', e => { if (e.key === 'Enter') shortenUrl(); });
-    $('statsCode').addEventListener('keydown', e => { if (e.key === 'Enter') getStats(); });
-    $('password').addEventListener('keydown', e => { if (e.key === 'Enter') auth('login'); });
-
-    refreshAuthUi();
-    loadMyUrls();
+    $('tabLogin').onclick = () => setMode('login');
+    $('tabRegister').onclick = () => setMode('register');
+    $('submitBtn').onclick = submit;
+    $('password').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 </script>
 </body>
 </html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>URL Shortener - Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="topbar">
+    <h1>URL Shortener</h1>
+    <div class="who">Logged in as <strong id="whoami"></strong>
+        <button id="logoutBtn" class="secondary small">Logout</button>
+    </div>
+</div>
+
+<!-- SHORTEN -->
+<div class="card">
+    <h2>Shorten a URL</h2>
+    <input id="longUrl" placeholder="https://www.example.com/very/long/url" />
+    <div class="row">
+        <input id="customAlias" placeholder="Custom alias (4-10 letters/digits, optional)" />
+        <input id="expiryDays" placeholder="Expiry days" style="max-width:130px;" />
+    </div>
+    <div style="margin-top:12px;"><button id="shortenBtn">Shorten</button></div>
+    <div id="shortenMessage" class="message"></div>
+    <div id="resultBox" class="result-box">
+        <div class="result-label">Your Short URL</div>
+        <div id="shortUrlText" class="result-url"></div>
+        <button id="copyBtn" class="small">Copy URL</button>
+    </div>
+</div>
+
+<!-- MY URLS -->
+<div class="card">
+    <h2>My URLs</h2>
+    <table>
+        <thead><tr><th>Code</th><th>Original</th><th>Clicks</th><th>Status</th><th></th></tr></thead>
+        <tbody id="myUrlsBody"></tbody>
+    </table>
+    <div id="myUrlsMessage" class="message"></div>
+</div>
+
+<!-- STATS -->
+<div class="card" id="statsCard">
+    <h2>Check Stats</h2>
+    <div class="row">
+        <input id="statsCode" placeholder="Enter short code e.g. aB3xYz" />
+        <button id="statsBtn">Get Stats</button>
+    </div>
+    <div id="statsMessage" class="message"></div>
+    <div id="statsBox" class="hidden" style="margin-top:20px;">
+        <div class="stats-grid">
+            <div class="stat-item"><div class="stat-label">Short Code</div><div class="stat-value" id="statCode">-</div></div>
+            <div class="stat-item"><div class="stat-label">Total Clicks</div><div class="stat-value clicks" id="statClicks">0</div></div>
+            <div class="stat-item" style="grid-column: span 2;"><div class="stat-label">Original URL</div><div class="stat-value" id="statUrl" style="font-size:0.85rem;color:#aaa;">-</div></div>
+            <div class="stat-item"><div class="stat-label">Status</div><div class="stat-value" id="statActive">-</div></div>
+            <div class="stat-item"><div class="stat-label">Expires At</div><div class="stat-value" id="statExpiry" style="font-size:0.85rem;">-</div></div>
+        </div>
+        <div class="chart"><div class="stat-label">Clicks, last 7 days (UTC)</div><div id="statChart"></div></div>
+    </div>
+</div>
+
+<p class="footer">Built with Spring Boot + MySQL</p>
+
+<script src="common.js"></script>
+<script>
+    // Not logged in? Back to the login page.
+    if (!getToken()) location.replace('index.html');
+    $('whoami').textContent = getUser() || '';
+
+    // ---------- shorten ----------
+    async function shortenUrl() {
+      const msg = $('shortenMessage'); clearMsg(msg);
+      $('resultBox').classList.remove('show');
+      const url = $('longUrl').value.trim();
+      const alias = $('customAlias').value.trim();
+      const expiry = $('expiryDays').value.trim();
+      if (!url) { show(msg, 'error', 'Please enter a URL.'); return; }
+
+      const body = { url };
+      if (alias) body.customAlias = alias;
+      if (expiry) body.expiryDays = parseInt(expiry, 10);
+
+      const r = await api('/api/shorten', { method: 'POST', body: JSON.stringify(body) });
+      if (!r.ok) { show(msg, 'error', errText(r)); return; }
+      $('shortUrlText').textContent = r.data.shortUrl;
+      $('resultBox').classList.add('show');
+      loadMyUrls();
+    }
+
+    function copyUrl() {
+      const url = $('shortUrlText').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        $('copyBtn').textContent = 'Copied!';
+        setTimeout(() => $('copyBtn').textContent = 'Copy URL', 2000);
+      });
+    }
+
+    // ---------- my urls ----------
+    function cell(text, className) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (className) td.className = className;
+      return td;
+    }
+
+    async function loadMyUrls() {
+      const msg = $('myUrlsMessage'); clearMsg(msg);
+      const r = await api('/api/urls');
+      const body = $('myUrlsBody'); body.replaceChildren();
+      if (!r.ok) { show(msg, 'error', errText(r)); return; }
+      if (r.data.length === 0) {
+        const tr = document.createElement('tr');
+        const td = cell('No URLs yet. Shorten one above.');
+        td.colSpan = 5; tr.appendChild(td); body.appendChild(tr);
+        return;
+      }
+      r.data.forEach(u => {
+        const tr = document.createElement('tr');
+
+        const codeTd = document.createElement('td');
+        const link = document.createElement('a');
+        link.href = u.shortUrl; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = u.shortCode;
+        codeTd.appendChild(link);
+
+        const urlTd = cell(u.originalUrl, 'url'); urlTd.title = u.originalUrl;
+        const statusTd = cell(u.isActive ? 'Active' : 'Inactive', u.isActive ? 'active-yes' : 'active-no');
+
+        const actionTd = document.createElement('td');
+        const statsBtn = document.createElement('button');
+        statsBtn.className = 'small secondary'; statsBtn.textContent = 'Stats';
+        statsBtn.onclick = () => { $('statsCode').value = u.shortCode; getStats(); $('statsCard').scrollIntoView({ behavior: 'smooth' }); };
+        actionTd.appendChild(statsBtn);
+        if (u.isActive) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'small danger secondary'; delBtn.textContent = 'Delete';
+          delBtn.onclick = () => deleteUrl(u.shortCode);
+          actionTd.appendChild(delBtn);
+        }
+
+        tr.append(codeTd, urlTd, cell(String(u.clickCount)), statusTd, actionTd);
+        body.appendChild(tr);
+      });
+    }
+
+    async function deleteUrl(code) {
+      if (!confirm('Deactivate ' + code + '? The short link will stop working.')) return;
+      const r = await api('/api/urls/' + encodeURIComponent(code), { method: 'DELETE' });
+      if (!r.ok) { show($('myUrlsMessage'), 'error', errText(r)); return; }
+      loadMyUrls();
+    }
+
+    // ---------- stats ----------
+    async function getStats() {
+      const msg = $('statsMessage'); clearMsg(msg);
+      $('statsBox').classList.add('hidden');
+      const code = $('statsCode').value.trim();
+      if (!code) { show(msg, 'error', 'Please enter a short code.'); return; }
+
+      const r = await api('/api/stats/' + encodeURIComponent(code));
+      if (!r.ok) { show(msg, 'error', errText(r)); return; }
+      const d = r.data;
+      $('statCode').textContent = d.shortCode;
+      $('statClicks').textContent = d.clickCount;
+      $('statUrl').textContent = d.originalUrl;
+      const active = $('statActive');
+      active.textContent = d.isActive ? 'Active' : 'Inactive';
+      active.className = 'stat-value ' + (d.isActive ? 'active-yes' : 'active-no');
+      $('statExpiry').textContent = d.expiresAt ? new Date(d.expiresAt).toLocaleDateString() : 'Never';
+
+      const chart = $('statChart'); chart.replaceChildren();
+      const days = Object.entries(d.clicksByDay || {});
+      const max = Math.max(1, ...days.map(([, c]) => c));
+      days.forEach(([day, count]) => {
+        const row = document.createElement('div'); row.className = 'bar-row';
+        const label = document.createElement('span'); label.className = 'day'; label.textContent = day.slice(5);
+        const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = (count / max * 100) + 'px';
+        const num = document.createElement('span'); num.textContent = count;
+        row.append(label, bar, num); chart.appendChild(row);
+      });
+      $('statsBox').classList.remove('hidden');
+    }
+
+    // ---------- wiring ----------
+    $('logoutBtn').onclick = logout;
+    $('shortenBtn').onclick = shortenUrl;
+    $('copyBtn').onclick = copyUrl;
+    $('statsBtn').onclick = getStats;
+    $('longUrl').addEventListener('keydown', e => { if (e.key === 'Enter') shortenUrl(); });
+    $('statsCode').addEventListener('keydown', e => { if (e.key === 'Enter') getStats(); });
+
+    loadMyUrls();
+</script>
+</body>
+</html>
